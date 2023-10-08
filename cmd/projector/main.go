@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/AndreiMoraru123/projector.go/pkg/projector"
 	"log"
@@ -17,5 +18,27 @@ func main() {
 		log.Fatalf("unable to get config %v", err)
 	}
 
-	fmt.Printf("opts: %+v", config)
+	proj := projector.NewProjector(config)
+	if config.Operation == projector.Print {
+		if len(config.Args) == 0 {
+			data := proj.GetValueAll()
+			jsonString, err := json.Marshal(data)
+			if err != nil {
+				log.Fatalf("this lne should never be reached %v", err)
+			}
+			fmt.Printf("%v", string(jsonString))
+		} else if value, ok := proj.GetValue(config.Args[0]); ok {
+			fmt.Printf("%v", value)
+		}
+	}
+
+	if config.Operation == projector.Add {
+		proj.SetValue(config.Args[0], config.Args[1])
+		proj.Save()
+	}
+
+	if config.Operation == projector.Remove {
+		proj.RemoveValue(config.Args[0])
+		proj.Save()
+	}
 }
